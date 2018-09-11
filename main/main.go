@@ -1,7 +1,6 @@
 package main
 
 import (
-	"time"
 	"github.com/vlorc/lua-vm/base"
 	"github.com/vlorc/lua-vm/crypto/hash"
 	"github.com/vlorc/lua-vm/crypto/rand"
@@ -17,10 +16,11 @@ import (
 	"github.com/vlorc/lua-vm/pool"
 	"github.com/vlorc/lua-vm/regexp"
 	"github.com/vlorc/lua-vm/store"
+	"time"
 )
 
 func main() {
-	network, _ := driver.NewProxyDriver("sock5://127.0.0.1:1080", driver.DirectDriver{})
+	network := driver.DirectDriver{}
 	p := pool.NewLuaPool().Preload(
 		pool.Value("tobuffer", base.ToBuffer),
 		pool.Module("net.tcp", tcp.NewTCPFactory(network)),
@@ -46,7 +46,7 @@ func main() {
 	)
 
 	now := time.Now()
-	err := p.DoFile("demo/bit.lua")
+	err := p.DoFile("demo/tcp.lua")
 	if nil != err {
 		println("error: ", err.Error())
 	}
