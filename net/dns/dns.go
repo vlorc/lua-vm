@@ -2,9 +2,9 @@ package dns
 
 import (
 	"context"
-	"net"
 	"github.com/vlorc/lua-vm/base"
 	vmnet "github.com/vlorc/lua-vm/net"
+	"net"
 )
 
 type DNSFactory struct {
@@ -19,12 +19,12 @@ func NewDNSFactory(driver vmnet.NetDriver) *DNSFactory {
 	}
 }
 
-func (f *DNSFactory) Lookup(host string,args ...int) ([]net.IPAddr,error){
+func (f *DNSFactory) Lookup(host string, args ...int) ([]net.IPAddr, error) {
 	ctx := context.Background()
-	if len(args) > 0 && args[0] > 0{
+	if len(args) > 0 && args[0] > 0 {
 		var cancel context.CancelFunc
-		ctx,cancel = context.WithTimeout(ctx,base.Duration(args[0]))
+		ctx, cancel = context.WithTimeout(ctx, base.Duration(args[0]))
 		defer cancel()
 	}
-	return f.resolver.LookupIPAddr(ctx,host)
+	return f.resolver.LookupIPAddr(ctx, host)
 }

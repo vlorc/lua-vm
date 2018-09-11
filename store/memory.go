@@ -8,29 +8,29 @@ type MemoryStore struct {
 
 type MemoryStoreFactory struct{}
 
-func(MemoryStoreFactory)New() StoreDriver{
+func (MemoryStoreFactory) New() StoreDriver {
 	return &MemoryStore{}
 }
 
-func(s *MemoryStore)Get(key string) string{
-	tmp,ok := s.m.Load(key)
+func (s *MemoryStore) Get(key string) string {
+	tmp, ok := s.m.Load(key)
 	if !ok {
 		return ""
 	}
 	return tmp.(string)
 }
-func(s *MemoryStore)Set(key,value string) {
-	s.m.Store(key,value)
+func (s *MemoryStore) Set(key, value string) {
+	s.m.Store(key, value)
 }
-func(s *MemoryStore)Delete(key string) {
+func (s *MemoryStore) Delete(key string) {
 	s.m.Delete(key)
 }
-func(s *MemoryStore)Exist(key string) bool {
-	_,ok := s.m.Load(key)
+func (s *MemoryStore) Exist(key string) bool {
+	_, ok := s.m.Load(key)
 	return ok
 }
-func(s *MemoryStore)Range(callback func(string,string)bool) {
+func (s *MemoryStore) Range(callback func(string, string) bool) {
 	s.m.Range(func(key, value interface{}) bool {
-		return callback(key.(string),value.(string))
+		return callback(key.(string), value.(string))
 	})
 }

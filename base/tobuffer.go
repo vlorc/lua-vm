@@ -9,7 +9,7 @@ import (
 
 func ToBuffer(L *lua.LState) int {
 	buf := __toBuffer(L)
-	L.Push(luar.New(L,buf))
+	L.Push(luar.New(L, buf))
 	return 1
 }
 
@@ -21,12 +21,12 @@ func __toBuffer(L *lua.LState) Buffer {
 	return nil
 }
 
-func  __newBuffer(v lua.LValue) Buffer {
+func __newBuffer(v lua.LValue) Buffer {
 	switch v.Type() {
 	case lua.LTString:
 		__stringBuffer(string(v.(lua.LString)))
 	case lua.LTNumber:
-		__allocBuffer(int(v.(lua.LNumber)),0)
+		__allocBuffer(int(v.(lua.LNumber)), 0)
 	case lua.LTUserData:
 		__dataBuffer(v.(*lua.LUserData).Value)
 	}
@@ -35,7 +35,7 @@ func  __newBuffer(v lua.LValue) Buffer {
 
 func __dataBuffer(v interface{}) Buffer {
 	reflect.TypeOf(v)
-	switch r := v.(type)  {
+	switch r := v.(type) {
 	case []byte:
 		return Buffer(r)
 	}

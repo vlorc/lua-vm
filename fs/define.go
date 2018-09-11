@@ -8,7 +8,7 @@ type FileDriver interface {
 }
 
 type FileSystem interface {
-	Open(file string) (FileDriver,error)
+	Open(file string) (FileDriver, error)
 	/*Create(file string,mode int) (File,error)
 	Remove(src,dst string) error
 	Delete(file string) error

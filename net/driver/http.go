@@ -6,12 +6,12 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	vmnet "github.com/vlorc/lua-vm/net"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"unsafe"
-	vmnet "github.com/vlorc/lua-vm/net"
 )
 
 type HttpDriver struct {
@@ -27,7 +27,7 @@ func NewHttpDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, erro
 	if nil != err {
 		return nil, err
 	}
-	return __newHttpDriver(uri,parent)
+	return __newHttpDriver(uri, parent)
 }
 
 func __newHttpDriver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, error) {

@@ -1,9 +1,9 @@
 package rand
 
 import (
+	"github.com/vlorc/lua-vm/base"
 	"math/rand"
 	"time"
-	"github.com/vlorc/lua-vm/base"
 )
 
 type RandFactory struct{}
@@ -14,11 +14,11 @@ func (RandFactory) New(seed int64) *rand.Rand {
 	return rand.New(rand.NewSource(seed))
 }
 
-func (RandFactory) Shuffle(n int, swap func(i, j int)){
+func (RandFactory) Shuffle(n int, swap func(i, j int)) {
 	__rand.Shuffle(n, swap)
 }
 
-func (RandFactory) Read(buf base.Buffer) (int,error) {
+func (RandFactory) Read(buf base.Buffer) (int, error) {
 	return __rand.Read(buf)
 }
 

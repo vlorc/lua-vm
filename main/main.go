@@ -30,7 +30,7 @@ func main() {
 		pool.Module("buffer", base.BufferFactory{}),
 		pool.Module("time", base.TimeFactory{}),
 		pool.Module("bit", base.BitFactory{}),
-		pool.Module("fs", fs.NewRelativeFileFactory(".",fs.NativeFileFactory{})),
+		pool.Module("fs", fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})),
 		pool.Module("io.reader", io.ReaderFactory{}),
 		pool.Module("io.writer", io.WriterFactory{}),
 		pool.Module("net.url", url.URlFactory{}),
@@ -42,7 +42,7 @@ func main() {
 		pool.Module("hash.crc32", crc.CRC32Factory{}),
 		pool.Module("hash.crc64", crc.CRC64Factory{}),
 		pool.Module("regexp", regexp.RegexpFactory{}),
-		pool.Module("store",store.NewStoreFactory(nil)),
+		pool.Module("store", store.NewStoreFactory(nil)),
 	)
 
 	now := time.Now()

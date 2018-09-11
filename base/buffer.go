@@ -14,7 +14,7 @@ func (f BufferFactory) New(length int) Buffer {
 }
 
 func (BufferFactory) Alloc(length int, args ...int) Buffer {
-	return __allocBuffer(length,args...)
+	return __allocBuffer(length, args...)
 }
 
 func (BufferFactory) Form(str string) Buffer {
@@ -89,7 +89,7 @@ func (b Buffer) Concat(src ...Buffer) Buffer {
 	for _, v := range src {
 		i += len(v)
 	}
-	dst := make(Buffer, i + len(b))
+	dst := make(Buffer, i+len(b))
 	i = len(b)
 	if i > 0 {
 		copy(dst, b)
@@ -124,7 +124,7 @@ func (b Buffer) ToString(args ...string) string {
 func (b Buffer) ToNumber(args ...int) (v int64) {
 	n := b.Slice(args...)
 	for i := len(n) - 1; i >= 0; i-- {
-		v = (v<<8) + int64(n[i])
+		v = (v << 8) + int64(n[i])
 	}
 	return v
 }
@@ -134,7 +134,7 @@ func (b Buffer) ToLine(args ...int) string {
 	if len(n) <= 0 {
 		return ""
 	}
-	pos := bytes.IndexByte(n,byte('\n'))
+	pos := bytes.IndexByte(n, byte('\n'))
 	if pos > 0 {
 		return __rawString(n[:pos])
 	}
