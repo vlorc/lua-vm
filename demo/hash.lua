@@ -1,0 +1,10 @@
+local md5 = require("crypto.md5")
+local sha1 = require("crypto.sha1")
+local sha256 = require("crypto.sha256")
+local sha512 = require("crypto.sha512")
+local buf = require("buffer"):form("cnmb")
+
+print("md5:\t",md5:sum(buf))
+print("sha1:\t",sha1:sum(buf))
+print("sha256:\t",sha256:sum(buf))
+print("sha512:\t",sha512:sum(buf))
