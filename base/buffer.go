@@ -2,6 +2,7 @@ package base
 
 import (
 	"bytes"
+	"unicode/utf8"
 	"unsafe"
 )
 
@@ -121,6 +122,12 @@ func (b Buffer) ToString(args ...string) string {
 	return ""
 }
 
+func (b Buffer) ToRune(args ...int) rune {
+	n := b.Slice(args...)
+	v, _ := utf8.DecodeRune(n)
+	return v
+}
+
 func (b Buffer) ToNumber(args ...int) (v int64) {
 	n := b.Slice(args...)
 	for i := len(n) - 1; i >= 0; i-- {
@@ -136,7 +143,7 @@ func (b Buffer) ToLine(args ...int) string {
 	}
 	pos := bytes.IndexByte(n, byte('\n'))
 	if pos > 0 {
-		return __rawString(n[:pos])
+		n = n[:pos]
 	}
-	return ""
+	return __rawString(n)
 }

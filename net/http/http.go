@@ -2,11 +2,14 @@ package http
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"github.com/vlorc/lua-vm/base"
 	vmnet "github.com/vlorc/lua-vm/net"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 	"io"
 	"io/ioutil"
 	"net"
@@ -52,54 +55,53 @@ func __client(driver vmnet.NetDriver, config *tls.Config) *http.Client {
 	}
 }
 
-func (f *HTTPFactory) __do(method, rawurl string, body io.Reader) (*http.Response, error) {
+type Body struct {
+	io.Reader
+	closer []io.Closer
+}
+
+func (b *Body) Close() error {
+	for i := len(b.closer) - 1; i >= 0; i-- {
+		b.closer[i].Close()
+	}
+	return nil
+}
+func (b *Body) Append(c io.Closer) {
+	b.closer = append(b.closer, c)
+}
+func __response(resp *http.Response, err error) (*http.Response, error) {
+	if nil != err {
+		return nil, err
+	}
+	reader := &Body{
+		Reader: resp.Body,
+		closer: []io.Closer{resp.Body},
+	}
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		ungzip, err := gzip.NewReader(reader.Reader)
+		if nil != err {
+			return resp, err
+		}
+		defer ungzip.Close()
+		reader.Reader = ungzip
+		reader.Append(ungzip)
+	}
+	if strings.Contains(resp.Header.Get("Content-Type"), "charset=GBK") {
+		reader.Reader = transform.NewReader(reader.Reader, simplifiedchinese.GBK.NewDecoder())
+	}
+	resp.Body = reader
+	return resp, nil
+}
+
+func (f *HTTPFactory) __do(method, rawurl string, body io.Reader, header ...string) (*http.Response, error) {
 	req, err := http.NewRequest(method, rawurl, body)
 	if err != nil {
 		return nil, err
 	}
-	return f.client.Do(req)
-}
-
-func (f *HTTPFactory) Delete(rawurl string) (*http.Response, error) {
-	return f.__do("DELETE", rawurl, nil)
-}
-
-func (f *HTTPFactory) Put(rawurl string) (*http.Response, error) {
-
-	return f.__do("PUT", rawurl, nil)
-}
-
-func (f *HTTPFactory) Get(rawurl string) (*http.Response, error) {
-	return f.client.Get(rawurl)
-}
-
-func (f *HTTPFactory) Post(rawurl, contentType string, body io.Reader) (*http.Response, error) {
-	return f.client.Post(rawurl, contentType, body)
-}
-
-func (f *HTTPFactory) PostJson(rawurl string, values interface{}, args ...string) (*http.Response, error) {
-	contentType := "application/json"
-	if len(args) > 0 {
-		contentType = args[0]
+	for i, l := 0, len(header); i < l; i += 2 {
+		req.Header.Set(header[i*2+0], header[i*2+1])
 	}
-	r, w := io.Pipe()
-	go func() {
-		json.NewEncoder(w).Encode(values)
-		w.Close()
-	}()
-	return f.client.Post(rawurl, contentType, r)
-}
-
-func (f *HTTPFactory) PostForm(rawurl string, values url.Values, args ...string) (*http.Response, error) {
-	contentType := "application/x-www-form-urlencoded"
-	if len(args) > 0 {
-		contentType = args[0]
-	}
-	return f.client.Post(rawurl, contentType, strings.NewReader(values.Encode()))
-}
-
-func (f *HTTPFactory) Head(rawurl string) (*http.Response, error) {
-	return f.__do("HEAD", rawurl, nil)
+	return __response(f.client.Do(req))
 }
 
 func (f *HTTPFactory) Do(r *Request) (*http.Response, error) {
@@ -127,8 +129,57 @@ func (f *HTTPFactory) Do(r *Request) (*http.Response, error) {
 			req.AddCookie(cookie)
 		}
 	}
+	return __response(f.client.Do(req))
+}
 
-	return f.client.Do(req)
+func (f *HTTPFactory) Delete(rawurl string) (*http.Response, error) {
+	return f.__do("DELETE", rawurl, nil)
+}
+func (f *HTTPFactory) Put(rawurl string) (*http.Response, error) {
+	return f.__do("PUT", rawurl, nil)
+}
+func (f *HTTPFactory) Get(rawurl string) (*http.Response, error) {
+	return f.__do("GET", rawurl, nil)
+}
+func (f *HTTPFactory) Post(rawurl, contentType string, body io.Reader) (*http.Response, error) {
+	return f.__do("POST", rawurl, body, "Content-Type", contentType)
+}
+func (f *HTTPFactory) Head(rawurl string) (*http.Response, error) {
+	return f.__do("HEAD", rawurl, nil)
+}
+func (f *HTTPFactory) PostJson(rawurl string, values interface{}, args ...string) (*http.Response, error) {
+	contentType := "application/json"
+	if len(args) > 0 {
+		contentType = args[0]
+	}
+	r, w := io.Pipe()
+	go func() {
+		json.NewEncoder(w).Encode(values)
+		w.Close()
+	}()
+	return f.Post(rawurl, contentType, r)
+}
+func (f *HTTPFactory) PostForm(rawurl string, values url.Values, args ...string) (*http.Response, error) {
+	contentType := "application/x-www-form-urlencoded"
+	if len(args) > 0 {
+		contentType = args[0]
+	}
+	return f.Post(rawurl, contentType, strings.NewReader(values.Encode()))
+}
+func (f *HTTPFactory) PostString(rawurl string, values string, args ...string) (*http.Response, error) {
+	contentType := "text/plain"
+	if len(args) > 0 {
+		contentType = args[0]
+	}
+	return f.Post(rawurl, contentType, strings.NewReader(values))
+}
+
+func (f *HTTPFactory) PostBuffer(rawurl string, values base.Buffer, args ...string) (*http.Response, error) {
+	contentType := "application/octet-stream"
+	if len(args) > 0 {
+		contentType = args[0]
+	}
+	return f.Post(rawurl, contentType, bytes.NewReader(values))
 }
 
 func (f *HTTPFactory) GetString(rawurl string) (string, error) {
@@ -140,7 +191,7 @@ func (f *HTTPFactory) GetString(rawurl string) (string, error) {
 }
 
 func (f *HTTPFactory) GetBuffer(rawurl string) (base.Buffer, error) {
-	resp, err := f.client.Get(rawurl)
+	resp, err := f.Get(rawurl)
 	if nil != err {
 		return nil, err
 	}
@@ -151,20 +202,4 @@ func (f *HTTPFactory) GetBuffer(rawurl string) (base.Buffer, error) {
 		return nil, err
 	}
 	return base.Buffer(buf), nil
-}
-
-func (f *HTTPFactory) PostString(rawurl string, values string, args ...string) (*http.Response, error) {
-	contentType := "text/plain"
-	if len(args) > 0 {
-		contentType = args[0]
-	}
-	return f.client.Post(rawurl, contentType, strings.NewReader(values))
-}
-
-func (f *HTTPFactory) PostBuffer(rawurl string, values base.Buffer, args ...string) (*http.Response, error) {
-	contentType := "application/octet-stream"
-	if len(args) > 0 {
-		contentType = args[0]
-	}
-	return f.client.Post(rawurl, contentType, bytes.NewReader(values))
 }
