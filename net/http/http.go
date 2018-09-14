@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"github.com/vlorc/lua-vm/base"
 	vmnet "github.com/vlorc/lua-vm/net"
 	"io"
@@ -51,12 +52,42 @@ func __client(driver vmnet.NetDriver, config *tls.Config) *http.Client {
 	}
 }
 
+func (f *HTTPFactory) __do(method, rawurl string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, rawurl, body)
+	if err != nil {
+		return nil, err
+	}
+	return f.client.Do(req)
+}
+
+func (f *HTTPFactory) Delete(rawurl string) (*http.Response, error) {
+	return f.__do("DELETE", rawurl, nil)
+}
+
+func (f *HTTPFactory) Put(rawurl string) (*http.Response, error) {
+
+	return f.__do("PUT", rawurl, nil)
+}
+
 func (f *HTTPFactory) Get(rawurl string) (*http.Response, error) {
 	return f.client.Get(rawurl)
 }
 
 func (f *HTTPFactory) Post(rawurl, contentType string, body io.Reader) (*http.Response, error) {
 	return f.client.Post(rawurl, contentType, body)
+}
+
+func (f *HTTPFactory) PostJson(rawurl string, values interface{}, args ...string) (*http.Response, error) {
+	contentType := "application/json"
+	if len(args) > 0 {
+		contentType = args[0]
+	}
+	r, w := io.Pipe()
+	go func() {
+		json.NewEncoder(w).Encode(values)
+		w.Close()
+	}()
+	return f.client.Post(rawurl, contentType, r)
 }
 
 func (f *HTTPFactory) PostForm(rawurl string, values url.Values, args ...string) (*http.Response, error) {
@@ -68,7 +99,7 @@ func (f *HTTPFactory) PostForm(rawurl string, values url.Values, args ...string)
 }
 
 func (f *HTTPFactory) Head(rawurl string) (*http.Response, error) {
-	return f.client.Head(rawurl)
+	return f.__do("HEAD", rawurl, nil)
 }
 
 func (f *HTTPFactory) Do(r *Request) (*http.Response, error) {

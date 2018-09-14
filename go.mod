@@ -1,4 +1,4 @@
-module github/vlorc/lua-vm
+module github.com/vlorc/lua-vm
 
 require (
 	github.com/yuin/gopher-lua v0.0.0-20180827083657-b942cacc89fe

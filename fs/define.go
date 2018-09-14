@@ -1,17 +1,20 @@
 package fs
 
-import "io"
+import (
+	"io"
+	"os"
+)
 
 type FileDriver interface {
 	io.ReadWriteCloser
 	io.Seeker
+	Stat() (os.FileInfo, error)
 }
 
 type FileSystem interface {
-	Open(file string) (FileDriver, error)
-	/*Create(file string,mode int) (File,error)
-	Remove(src,dst string) error
-	Delete(file string) error
+	Open(file string, args ...int) (FileDriver, error)
+	Remove(file string) error
+	/*Remove(src,dst string) error
 	MkDir(file string) error
 	MkTmp(file string) (string,error)*/
 }

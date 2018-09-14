@@ -8,19 +8,21 @@ import (
 	"strings"
 )
 
-type NativeFile struct {
-}
-
-type NativeFileFactory struct{}
-
-func (NativeFileFactory) Open(file string) (FileDriver, error) {
-	fd, err := os.Open(file)
-	return fd, err
-}
-
 type RelativeFileFactory struct {
 	parent FileSystem
 	root   string
+}
+
+func __parse(root, src string) (string, error) {
+	dst := filepath.Join(root, src)
+	dst, err := filepath.Abs(dst)
+	if nil != err {
+		return "", err
+	}
+	if !strings.HasPrefix(dst, root) {
+		return "", fmt.Errorf("Can't open file %s to %s", src, dst)
+	}
+	return dst, nil
 }
 
 func NewRelativeFileFactory(root string, parent FileSystem) FileSystem {
@@ -35,14 +37,18 @@ func NewRelativeFileFactory(root string, parent FileSystem) FileSystem {
 	}
 }
 
-func (f *RelativeFileFactory) Open(src string) (FileDriver, error) {
-	dst := filepath.Join(f.root, src)
-	dst, err := filepath.Abs(dst)
+func (f *RelativeFileFactory) Open(file string, args ...int) (FileDriver, error) {
+	dst, err := __parse(f.root, file)
 	if nil != err {
 		return nil, err
 	}
-	if !strings.HasPrefix(dst, f.root) {
-		return nil, fmt.Errorf("Can't open file %s to %s", src, dst)
-	}
 	return f.parent.Open(dst)
+}
+
+func (f *RelativeFileFactory) Remove(file string) error {
+	dst, err := __parse(f.root, file)
+	if nil == err {
+		err = f.parent.Remove(dst)
+	}
+	return err
 }

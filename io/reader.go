@@ -6,7 +6,9 @@ import (
 	"encoding/binary"
 	"github.com/vlorc/lua-vm/base"
 	"io"
+	"io/ioutil"
 	"strings"
+	"unsafe"
 )
 
 type Reader interface {
@@ -54,6 +56,17 @@ func (f ReaderFactory) FormString(str string) Reader {
 }
 func (f ReaderFactory) FormBuffer(buf base.Buffer) Reader {
 	return f.FormStream(bytes.NewReader(buf))
+}
+func (f ReaderFactory) ReadBuffer(r io.Reader) (base.Buffer, error) {
+	buf, err := ioutil.ReadAll(r)
+	return base.Buffer(buf), err
+}
+func (f ReaderFactory) ReadString(r io.Reader) (string, error) {
+	buf, err := f.ReadBuffer(r)
+	if nil != err {
+		return "", err
+	}
+	return *(*string)(unsafe.Pointer(&buf)), nil
 }
 func (r *StreamReader) Endian(big bool) {
 	if big {

@@ -21,6 +21,7 @@ import (
 
 func main() {
 	network := driver.DirectDriver{}
+	filesystem := fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})
 	p := pool.NewLuaPool().Preload(
 		pool.Value("tobuffer", base.ToBuffer),
 		pool.Module("net.tcp", tcp.NewTCPFactory(network)),
@@ -30,7 +31,8 @@ func main() {
 		pool.Module("buffer", base.BufferFactory{}),
 		pool.Module("time", base.TimeFactory{}),
 		pool.Module("bit", base.BitFactory{}),
-		pool.Module("fs", fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})),
+		pool.Module("fs", filesystem),
+		pool.Module("fs.utils", fs.FileUtilsFactory{FileSystem: filesystem}),
 		pool.Module("io.reader", io.ReaderFactory{}),
 		pool.Module("io.writer", io.WriterFactory{}),
 		pool.Module("net.url", url.URlFactory{}),
