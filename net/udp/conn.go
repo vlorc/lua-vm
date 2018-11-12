@@ -21,7 +21,7 @@ func (c *UDPConn) Write(buf base.Buffer) (int, error) {
 	return 0, nil
 }
 
-func (c *UDPConn) Close(buf base.Buffer) error {
+func (c *UDPConn) Close() error {
 	return c.conn.Close()
 }
 
