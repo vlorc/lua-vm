@@ -1,6 +1,9 @@
 package fs
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
 type NativeFile struct{}
 
@@ -23,6 +26,27 @@ func (NativeFileFactory) Open(file string, args ...int) (FileDriver, error) {
 	return fd, err
 }
 
+func (NativeFileFactory) Rename(src, dst string) error {
+	return os.Rename(src,dst)
+}
+
 func (NativeFileFactory) Remove(file string) error {
 	return os.Remove(file)
+}
+
+func (NativeFileFactory) Exist(file string) bool {
+	if _, err := os.Stat(file); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+func (NativeFileFactory) Mkdir(file string,mode int) error {
+	return os.MkdirAll(file,os.FileMode(mode))
+}
+
+func (NativeFileFactory) Walk(root string,callback filepath.WalkFunc) error {
+	return filepath.Walk(root, callback)
 }

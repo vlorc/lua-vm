@@ -38,17 +38,53 @@ func NewRelativeFileFactory(root string, parent FileSystem) FileSystem {
 }
 
 func (f *RelativeFileFactory) Open(file string, args ...int) (FileDriver, error) {
-	dst, err := __parse(f.root, file)
+	v, err := __parse(f.root, file)
 	if nil != err {
 		return nil, err
 	}
-	return f.parent.Open(dst)
+	return f.parent.Open(v, args...)
 }
 
 func (f *RelativeFileFactory) Remove(file string) error {
-	dst, err := __parse(f.root, file)
+	v, err := __parse(f.root, file)
 	if nil == err {
-		err = f.parent.Remove(dst)
+		err = f.parent.Remove(v)
+	}
+	return err
+}
+
+func (f *RelativeFileFactory) Rename(src, dst string) error {
+	s, e := __parse(f.root, src)
+	if nil != e {
+		return e
+	}
+	d, e := __parse(f.root, dst)
+	if nil == e {
+		e = os.Rename(s, d)
+	}
+	return e
+}
+
+func (f *RelativeFileFactory) Exist(file string) bool {
+	v, err := __parse(f.root, file)
+	if nil == err {
+		return f.parent.Exist(v)
+	}
+	return false
+}
+
+func (f *RelativeFileFactory) Mkdir(file string, mode int) error {
+	v, err := __parse(f.root, file)
+	if nil == err {
+		err = f.parent.Mkdir(v, mode)
+	}
+	return err
+}
+
+func (f *RelativeFileFactory) Walk(root string, callback filepath.WalkFunc) error {
+	v, err := __parse(f.root, root)
+	if nil == err {
+		err = f.parent.Walk(v, callback)
 	}
 	return err
 }

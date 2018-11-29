@@ -49,11 +49,35 @@ func (f *HttpFileFactory) Open(file string, args ...int) (FileDriver, error) {
 func (f *HttpFileFactory) Remove(file string) error {
 	resp, err := f.driver.Delete(f.root + file)
 	if nil == err {
+		defer resp.Body.Close()
 		if 200 != resp.StatusCode {
 			err = fmt.Errorf("Can't open http file code: %d", resp.StatusCode)
 		}
 	}
 	return err
+}
+
+func (*HttpFileFactory) Rename(src, dst string) error {
+	return errors.New("Can't support rename method")
+}
+
+func (f *HttpFileFactory) Exist(file string) bool {
+	resp, err := f.driver.Head(f.root + file)
+	if nil == err {
+		defer resp.Body.Close()
+		if 200 != resp.StatusCode {
+			err = fmt.Errorf("Can't exist http file code: %d", resp.StatusCode)
+		}
+	}
+	return true
+}
+
+func (*HttpFileFactory) Mkdir(string, int) error {
+	return errors.New("Can't support mkdir method")
+}
+
+func (*HttpFileFactory) Walk(root string, callback filepath.WalkFunc) error {
+	return errors.New("Can't support walk method")
 }
 
 func (f *HttpFile) Write(b []byte) (int, error) {

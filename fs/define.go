@@ -3,6 +3,7 @@ package fs
 import (
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type FileDriver interface {
@@ -14,7 +15,8 @@ type FileDriver interface {
 type FileSystem interface {
 	Open(file string, args ...int) (FileDriver, error)
 	Remove(file string) error
-	/*Remove(src,dst string) error
-	MkDir(file string) error
-	MkTmp(file string) (string,error)*/
+	Rename(src, dst string) error
+	Exist(file string) bool
+	Mkdir(file string, mode int) error
+	Walk(root string, callback filepath.WalkFunc) error
 }
