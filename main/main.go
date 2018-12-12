@@ -36,11 +36,12 @@ func main() {
 		pool.Module("io.reader", io.ReaderFactory{}),
 		pool.Module("io.writer", io.WriterFactory{}),
 		pool.Module("net.url", url.URlFactory{}),
-		pool.Module("crypto.rand", rand.RandFactory{}),
+		pool.Module("rand", rand.RandFactory{}),
 		pool.Module("crypto.md5", hash.MD5Factory{}),
 		pool.Module("crypto.sha1", hash.SHA1Factory{}),
 		pool.Module("crypto.sha256", hash.SHA256Factory{}),
 		pool.Module("crypto.sha512", hash.SHA512Factory{}),
+		pool.Module("crypto.hmac", hash.HMACFactory{}),
 		pool.Module("hash.crc32", crc.CRC32Factory{}),
 		pool.Module("hash.crc64", crc.CRC64Factory{}),
 		pool.Module("regexp", regexp.RegexpFactory{}),
@@ -48,7 +49,7 @@ func main() {
 	)
 
 	now := time.Now()
-	err := p.DoFile("demo/tcp.lua")
+	err := p.DoFile("demo/dns.lua")
 	if nil != err {
 		println("error: ", err.Error())
 	}

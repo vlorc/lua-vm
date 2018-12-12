@@ -27,7 +27,7 @@ func (NativeFileFactory) Open(file string, args ...int) (FileDriver, error) {
 }
 
 func (NativeFileFactory) Rename(src, dst string) error {
-	return os.Rename(src,dst)
+	return os.Rename(src, dst)
 }
 
 func (NativeFileFactory) Remove(file string) error {
@@ -43,10 +43,10 @@ func (NativeFileFactory) Exist(file string) bool {
 	return true
 }
 
-func (NativeFileFactory) Mkdir(file string,mode int) error {
-	return os.MkdirAll(file,os.FileMode(mode))
+func (NativeFileFactory) Mkdir(file string, mode int) error {
+	return os.MkdirAll(file, os.FileMode(mode))
 }
 
-func (NativeFileFactory) Walk(root string,callback filepath.WalkFunc) error {
+func (NativeFileFactory) Walk(root string, callback filepath.WalkFunc) error {
 	return filepath.Walk(root, callback)
 }

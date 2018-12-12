@@ -1,6 +1,8 @@
 package base
 
 import (
+	"encoding"
+	"encoding/json"
 	"github.com/yuin/gopher-lua"
 	"layeh.com/gopher-luar"
 	"reflect"
@@ -36,8 +38,32 @@ func __newBuffer(v lua.LValue) Buffer {
 func __dataBuffer(v interface{}) Buffer {
 	reflect.TypeOf(v)
 	switch r := v.(type) {
+	case *[]byte:
+		if nil != r {
+			return Buffer(*r)
+		}
+	case *Buffer:
+		if nil != r {
+			return Buffer(*r)
+		}
+	case *string:
+		if nil != r {
+			return Buffer(*r)
+		}
 	case []byte:
 		return Buffer(r)
+	case encoding.BinaryMarshaler:
+		if b, err := r.MarshalBinary(); nil != err && len(b) > 0 {
+			return Buffer(b)
+		}
+	case encoding.TextMarshaler:
+		if b, err := r.MarshalText(); nil != err && len(b) > 0 {
+			return Buffer(b)
+		}
+	case json.Marshaler:
+		if b, err := r.MarshalJSON(); nil != err && len(b) > 0 {
+			return Buffer(b)
+		}
 	}
 	return nil
 }
@@ -69,7 +95,7 @@ func __stringBuffer(val ...string) Buffer {
 	return buf
 }
 
-func __intBuffer(val ...int) Buffer {
+func __numberBuffer(val ...int) Buffer {
 	buf := make(Buffer, len(val))
 	for i, v := range val {
 		buf[i] = byte(v)

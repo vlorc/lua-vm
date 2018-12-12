@@ -11,6 +11,13 @@ func (c *UDPConn) Read(buf base.Buffer) (int, error) {
 		n, _, e := c.ReadFrom(buf)
 		return n, e
 	}
+	for {
+		n, a, e := c.ReadFrom(buf)
+		addr, ok := a.(*net.UDPAddr)
+		if nil != e || (ok && addr.IP.Equal(c.remote.IP) && addr.Port == c.remote.Port) {
+			return n, e
+		}
+	}
 	return 0, nil
 }
 
@@ -35,7 +42,6 @@ func (c *UDPConn) ReadFrom(buf base.Buffer) (n int, a net.Addr, e error) {
 	}
 	return
 }
-
 func (c *UDPConn) WriteTo(buf base.Buffer, addr net.Addr) (n int, e error) {
 	if c.writeTimeout > 0 {
 		c.conn.SetWriteDeadline(time.Now().Add(c.writeTimeout))

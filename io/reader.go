@@ -18,10 +18,10 @@ type Reader interface {
 	ReadStringAt(int) (string, error)
 	ReadBufferAt(int) (base.Buffer, error)
 	ReadLine() (string, error)
-	ReadInt8() (int64, error)
-	ReadInt16() (int64, error)
-	ReadInt32() (int64, error)
-	ReadInt64() (int64, error)
+	ReadInt8() (uint8, error)
+	ReadInt16() (uint16, error)
+	ReadInt32() (uint32, error)
+	ReadInt64() (uint64, error)
 	ReadRune() (rune, error)
 }
 
@@ -33,6 +33,18 @@ type ReaderFactory struct{}
 
 func (f ReaderFactory) New(b interface{}) Reader {
 	switch r := b.(type) {
+	case *[]byte:
+		if nil != r {
+			return f.FormBuffer(base.Buffer(*r))
+		}
+	case *base.Buffer:
+		if nil != r {
+			return f.FormBuffer(base.Buffer(*r))
+		}
+	case *string:
+		if nil != r {
+			return f.FormString(*r)
+		}
 	case []byte:
 		return f.FormBuffer(base.Buffer(r))
 	case base.Buffer:
@@ -106,31 +118,31 @@ func (r *StreamReader) ReadRune() (rune, error) {
 	val, _, err := r.reader.ReadRune()
 	return val, err
 }
-func (r *StreamReader) ReadInt8() (int64, error) {
+func (r *StreamReader) ReadInt8() (uint8, error) {
 	val, err := r.reader.ReadByte()
-	return int64(val), err
+	return uint8(val), err
 }
-func (r *StreamReader) ReadInt16() (int64, error) {
+func (r *StreamReader) ReadInt16() (uint16, error) {
 	buf, err := r.reader.Peek(2)
 	if nil != err {
 		return 0, err
 	}
 	r.reader.Discard(2)
-	return int64(r.order.Uint16(buf)), nil
+	return r.order.Uint16(buf), nil
 }
-func (r *StreamReader) ReadInt32() (int64, error) {
+func (r *StreamReader) ReadInt32() (uint32, error) {
 	buf, err := r.reader.Peek(4)
 	if nil != err {
 		return 0, err
 	}
 	r.reader.Discard(4)
-	return int64(r.order.Uint32(buf)), nil
+	return r.order.Uint32(buf), nil
 }
-func (r *StreamReader) ReadInt64() (int64, error) {
+func (r *StreamReader) ReadInt64() (uint64, error) {
 	buf, err := r.reader.Peek(8)
 	if nil != err {
 		return 0, err
 	}
 	r.reader.Discard(8)
-	return int64(r.order.Uint64(buf)), nil
+	return r.order.Uint64(buf), nil
 }

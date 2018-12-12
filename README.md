@@ -69,6 +69,7 @@ func main() {
 ## Lua Demo
 + [tcp](https://github.com/vlorc/lua-vm/blob/master/demo/tcp.lua)
 + [udp](https://github.com/vlorc/lua-vm/blob/master/demo/udp.lua)
++ [dns](https://github.com/vlorc/lua-vm/blob/master/demo/dns.lua)
 + [http](https://github.com/vlorc/lua-vm/blob/master/demo/http.lua)
 + [time](https://github.com/vlorc/lua-vm/blob/master/demo/time.lua)
 + [hash](https://github.com/vlorc/lua-vm/blob/master/demo/hash.lua)

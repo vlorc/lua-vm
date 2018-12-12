@@ -22,8 +22,8 @@ func (BufferFactory) Form(str string) Buffer {
 	return Buffer(str)
 }
 
-func (BufferFactory) FormInt(val ...int) Buffer {
-	return __intBuffer(val...)
+func (BufferFactory) FormNumber(val ...int) Buffer {
+	return __numberBuffer(val...)
 }
 
 func (BufferFactory) FormString(val ...string) Buffer {
@@ -79,27 +79,19 @@ func (b Buffer) Clone(args ...int) Buffer {
 	return dst
 }
 
-func (b Buffer) Copy(src Buffer, args ...int) {
-	if len(src) > 0 {
-		copy(b.Slice(args...), src)
-	}
+func (b Buffer) Copy(src Buffer, args ...int) int {
+	return copy(b.Slice(args...), src)
 }
 
 func (b Buffer) Concat(src ...Buffer) Buffer {
-	i := 0
+	i := len(b)
 	for _, v := range src {
 		i += len(v)
 	}
-	dst := make(Buffer, i+len(b))
-	i = len(b)
-	if i > 0 {
-		copy(dst, b)
-	}
+	dst := make(Buffer, i)
+	i = copy(dst, b)
 	for _, v := range src {
-		if len(v) > 0 {
-			copy(dst[i:], v)
-			i += len(v)
-		}
+		i += copy(dst[i:], v)
 	}
 	return dst
 }
@@ -109,7 +101,7 @@ func (b Buffer) Equal(buf Buffer) bool {
 }
 
 func (b Buffer) String() string {
-	return __hexUpperString(b)
+	return __HEXString(b)
 }
 
 func (b Buffer) ToString(args ...string) string {
@@ -124,16 +116,22 @@ func (b Buffer) ToString(args ...string) string {
 
 func (b Buffer) ToRune(args ...int) rune {
 	n := b.Slice(args...)
-	v, _ := utf8.DecodeRune(n)
-	return v
+	r, _ := utf8.DecodeRune(n)
+	return r
 }
 
-func (b Buffer) ToNumber(args ...int) (v int64) {
+func (b Buffer) ToNumber(args ...int) (r uint64) {
 	n := b.Slice(args...)
-	for i := len(n) - 1; i >= 0; i-- {
-		v = (v << 8) + int64(n[i])
+	if 3 != len(args) {
+		for i := len(n) - 1; i >= 0; i-- {
+			r = (r << 8) + uint64(n[i])
+		}
+	} else {
+		for _, v := range n {
+			r = (r << 8) + uint64(v)
+		}
 	}
-	return v
+	return r
 }
 
 func (b Buffer) ToLine(args ...int) string {
@@ -146,4 +144,14 @@ func (b Buffer) ToLine(args ...int) string {
 		n = n[:pos]
 	}
 	return __rawString(n)
+}
+
+func (b Buffer) ToHash(args ...string) uint64 {
+	if len(args) <= 0 {
+		return __hashChecksum8(b)
+	}
+	if hash, ok := HashTable[args[0]]; ok {
+		return hash(b)
+	}
+	return 0
 }

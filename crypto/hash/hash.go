@@ -1,6 +1,7 @@
 package hash
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -13,6 +14,7 @@ type SHA1Factory struct{}
 type SHA256Factory struct{}
 type SHA512Factory struct{}
 type MD5Factory struct{}
+type HMACFactory struct{}
 
 func __sum(h hash.Hash, buf ...base.Buffer) base.Buffer {
 	for _, v := range buf {
@@ -51,4 +53,19 @@ func (SHA512Factory) New() hash.Hash {
 
 func (SHA512Factory) Sum(buf ...base.Buffer) base.Buffer {
 	return __sum(sha512.New(), buf...)
+}
+
+var __table = map[string]func() hash.Hash{
+	"md5":    md5.New,
+	"sha1":   sha1.New,
+	"sha256": sha256.New,
+	"sha512": sha512.New,
+}
+
+func (HMACFactory) New(method, secret string) hash.Hash {
+	return hmac.New(__table[method], []byte(secret))
+}
+
+func (f HMACFactory) Sum(method, secret string, buf ...base.Buffer) base.Buffer {
+	return __sum(f.New(method, secret), buf...)
 }
