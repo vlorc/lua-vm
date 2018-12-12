@@ -2,6 +2,7 @@ package base
 
 import (
 	"bytes"
+	"layeh.com/gopher-luar"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -18,8 +19,8 @@ func (BufferFactory) Alloc(length int, args ...int) Buffer {
 	return __allocBuffer(length, args...)
 }
 
-func (BufferFactory) Form(str string) Buffer {
-	return Buffer(str)
+func (BufferFactory) Form(L *luar.LState) int {
+	return toBuffer(L)
 }
 
 func (BufferFactory) FormNumber(val ...int) Buffer {

@@ -1,29 +1,57 @@
 package base
 
 import (
+	"bytes"
 	"encoding"
 	"encoding/json"
 	"github.com/yuin/gopher-lua"
 	"layeh.com/gopher-luar"
-	"reflect"
 	"unsafe"
 )
 
-func ToBuffer(L *lua.LState) int {
-	buf := __toBuffer(L)
-	L.Push(luar.New(L, buf))
+func toBuffer(L *luar.LState) int {
+	buf := __toBuffer(L.LState)
+	L.Push(luar.New(L.LState, buf))
 	return 1
 }
 
 func __toBuffer(L *lua.LState) Buffer {
 	top := L.GetTop()
+	if top > 1 {
+		return __newBufferN(L)
+	}
 	if 1 == top {
-		return __newBuffer(L.Get(1))
+		return __newBuffer1(L.Get(1))
 	}
 	return nil
 }
 
-func __newBuffer(v lua.LValue) Buffer {
+func __newBufferN(L *lua.LState) Buffer {
+	v := L.Get(1)
+	switch v.Type() {
+	case lua.LTString:
+		r := make([]string, L.GetTop())
+		for i := L.GetTop(); i > 0; i-- {
+			r[i-1] = string(L.Get(i).(lua.LString))
+		}
+		return __stringBuffer(r...)
+	case lua.LTNumber:
+		r := make([]int, L.GetTop())
+		for i := L.GetTop(); i > 0; i-- {
+			r[i-1] = int(L.Get(i).(lua.LNumber))
+		}
+		return __numberBuffer(r...)
+	case lua.LTUserData:
+		r := make([]interface{}, L.GetTop())
+		for i := L.GetTop(); i > 0; i-- {
+			r[i-1] = int(L.Get(i).(lua.LNumber))
+		}
+		return __writeBuffer(r...)
+	}
+	return nil
+}
+
+func __newBuffer1(v lua.LValue) Buffer {
 	switch v.Type() {
 	case lua.LTString:
 		__stringBuffer(string(v.(lua.LString)))
@@ -36,7 +64,6 @@ func __newBuffer(v lua.LValue) Buffer {
 }
 
 func __dataBuffer(v interface{}) Buffer {
-	reflect.TypeOf(v)
 	switch r := v.(type) {
 	case *[]byte:
 		if nil != r {
@@ -101,4 +128,14 @@ func __numberBuffer(val ...int) Buffer {
 		buf[i] = byte(v)
 	}
 	return buf
+}
+
+func __writeBuffer(val ...interface{}) Buffer {
+	var buf bytes.Buffer
+	for _, v := range val {
+		if b := __dataBuffer(v); len(b) > 0 {
+			buf.Write(b)
+		}
+	}
+	return Buffer(buf.Bytes())
 }

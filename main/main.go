@@ -23,7 +23,6 @@ func main() {
 	network := driver.DirectDriver{}
 	filesystem := fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})
 	p := pool.NewLuaPool().Preload(
-		pool.Value("tobuffer", base.ToBuffer),
 		pool.Module("net.tcp", tcp.NewTCPFactory(network)),
 		pool.Module("net.udp", udp.NewUDPFactory(network)),
 		pool.Module("net.http", http.NewHTTPFactory(network)),
@@ -49,7 +48,7 @@ func main() {
 	)
 
 	now := time.Now()
-	err := p.DoFile("demo/dns.lua")
+	err := p.DoFile("demo/buffer.lua")
 	if nil != err {
 		println("error: ", err.Error())
 	}

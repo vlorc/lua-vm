@@ -72,7 +72,7 @@ func main() {
 + [dns](https://github.com/vlorc/lua-vm/blob/master/demo/dns.lua)
 + [http](https://github.com/vlorc/lua-vm/blob/master/demo/http.lua)
 + [time](https://github.com/vlorc/lua-vm/blob/master/demo/time.lua)
-+ [hash](https://github.com/vlorc/lua-vm/blob/master/demo/hash.lua)
++ [crypto](https://github.com/vlorc/lua-vm/blob/master/demo/crypto.lua)
 + [regexp](https://github.com/vlorc/lua-vm/blob/master/demo/regexp.lua)
 + [bit](https://github.com/vlorc/lua-vm/blob/master/demo/bit.lua)
 + [file](https://github.com/vlorc/lua-vm/blob/master/demo/file.lua)
