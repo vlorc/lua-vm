@@ -48,10 +48,15 @@ func main() {
 	)
 
 	now := time.Now()
-	err := p.DoFile("demo/buffer.lua")
+	module, err := p.ModuleFile("demo/module.lua")
 	if nil != err {
 		println("error: ", err.Error())
 	}
+
+	var add func(int, int) int
+	module.Method("add", &add)
+	println("add:", add(1, 2))
+
 	last := time.Now()
 	println("time: ", (last.UnixNano()-now.UnixNano())/1000000, last.Unix()-now.Unix())
 }

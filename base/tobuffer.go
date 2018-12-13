@@ -54,11 +54,11 @@ func __newBufferN(L *lua.LState) Buffer {
 func __newBuffer1(v lua.LValue) Buffer {
 	switch v.Type() {
 	case lua.LTString:
-		__stringBuffer(string(v.(lua.LString)))
+		return __stringBuffer(string(v.(lua.LString)))
 	case lua.LTNumber:
-		__allocBuffer(int(v.(lua.LNumber)), 0)
+		return __allocBuffer(int(v.(lua.LNumber)), 0)
 	case lua.LTUserData:
-		__dataBuffer(v.(*lua.LUserData).Value)
+		return __dataBuffer(v.(*lua.LUserData).Value)
 	}
 	return nil
 }

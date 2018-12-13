@@ -27,5 +27,5 @@ func (BitFactory) Not(v uint64) uint64 {
 }
 
 func (BitFactory) Test(v, r uint64) bool {
-	return 0 != (v >> r)&1
+	return 0 != (v>>r)&1
 }
