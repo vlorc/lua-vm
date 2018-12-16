@@ -63,3 +63,27 @@ func (p *LuaPool) Preload(load ...func(*lua.LState) error) *LuaPool {
 	p.init = append(p.init, load...)
 	return p
 }
+
+func (p *LuaPool) ModuleString(source string) (LuaModule, error) {
+	L := p.Get()
+	if err := L.DoString(source); nil != err {
+		return nil, err
+	}
+	return __toModule(L), nil
+}
+
+func (p *LuaPool) ModuleFile(file string) (LuaModule, error) {
+	L := p.Get()
+	if err := L.DoFile(file); nil != err {
+		return nil, err
+	}
+	return __toModule(L), nil
+}
+
+func __toModule(state *lua.LState) LuaModule {
+	table := state.ToTable(-1)
+	return &module{
+		state: state,
+		table: table,
+	}
+}
