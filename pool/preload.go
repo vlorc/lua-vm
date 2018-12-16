@@ -5,6 +5,7 @@ import (
 	"github.com/yuin/gopher-lua/parse"
 	"io"
 	"layeh.com/gopher-luar"
+	"sync"
 )
 
 func Source(r io.Reader, name ...string) func(*lua.LState) error {
@@ -30,6 +31,21 @@ func source(r io.Reader, name string) func(*lua.LState) error {
 	return func(L *lua.LState) error {
 		L.Push(L.NewFunctionFromProto(proto))
 		return L.PCall(0, lua.MultRet, nil)
+	}
+}
+
+func Lazy(name string, init func() interface{}) func(*lua.LState) error {
+	once := sync.Once{}
+	var val interface{}
+	return func(L *lua.LState) error {
+		L.PreloadModule(name, func(S *lua.LState) int {
+			once.Do(func() {
+				val = init()
+			})
+			S.Push(luar.New(S, val))
+			return 1
+		})
+		return nil
 	}
 }
 

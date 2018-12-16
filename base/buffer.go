@@ -121,6 +121,14 @@ func (b Buffer) ToRune(args ...int) rune {
 	return r
 }
 
+func (b Buffer) Reverse(args ...int) Buffer {
+	n := b.Slice(args...)
+	for i, j := 0, len(n)-1; i < j; i, j = i+1, j-1 {
+		n[i], n[j] = n[j], n[i]
+	}
+	return n
+}
+
 func (b Buffer) ToNumber(args ...int) (r uint64) {
 	n := b.Slice(args...)
 	if 3 != len(args) {

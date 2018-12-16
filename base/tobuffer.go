@@ -44,7 +44,7 @@ func __newBufferN(L *lua.LState) Buffer {
 	case lua.LTUserData:
 		r := make([]interface{}, L.GetTop())
 		for i := L.GetTop(); i > 0; i-- {
-			r[i-1] = int(L.Get(i).(lua.LNumber))
+			r[i-1] = L.Get(i).(*lua.LUserData).Value
 		}
 		return __writeBuffer(r...)
 	}
