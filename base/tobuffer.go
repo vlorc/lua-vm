@@ -9,9 +9,9 @@ import (
 	"unsafe"
 )
 
-func toBuffer(L *luar.LState) int {
-	buf := __toBuffer(L.LState)
-	L.Push(luar.New(L.LState, buf))
+func toBuffer(L *lua.LState) int {
+	buf := __toBuffer(L)
+	L.Push(luar.New(L, buf))
 	return 1
 }
 
@@ -56,7 +56,7 @@ func __newBuffer1(v lua.LValue) Buffer {
 	case lua.LTString:
 		return __stringBuffer(string(v.(lua.LString)))
 	case lua.LTNumber:
-		return __allocBuffer(int(v.(lua.LNumber)), 0)
+		return __allocBuffer(int(v.(lua.LNumber)))
 	case lua.LTUserData:
 		return __dataBuffer(v.(*lua.LUserData).Value)
 	}

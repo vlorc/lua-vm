@@ -20,7 +20,7 @@ func (BufferFactory) Alloc(length int, args ...int) Buffer {
 }
 
 func (BufferFactory) Form(L *luar.LState) int {
-	return toBuffer(L)
+	return toBuffer(L.LState)
 }
 
 func (BufferFactory) FormNumber(val ...int) Buffer {

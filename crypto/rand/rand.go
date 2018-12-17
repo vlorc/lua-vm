@@ -50,8 +50,12 @@ func (RandFactory) Uint8() uint {
 	return uint(__rand.Int31n(256))
 }
 
-func (RandFactory) Uint32() uint {
+func (RandFactory) Uint16() uint {
 	return uint(__rand.Int31n(65536))
+}
+
+func (RandFactory) Uint32() uint {
+	return uint(__rand.Uint32())
 }
 
 func (RandFactory) Uint64() uint64 {

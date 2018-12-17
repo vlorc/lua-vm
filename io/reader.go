@@ -5,8 +5,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/vlorc/lua-vm/base"
+	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
+	"layeh.com/gopher-luar"
 	"strings"
 	"unsafe"
 )
@@ -31,7 +33,24 @@ type StreamReader struct {
 }
 type ReaderFactory struct{}
 
-func (f ReaderFactory) New(b interface{}) Reader {
+func (f ReaderFactory) New(L luar.LState) int {
+	v := L.Get(-1)
+	w := f.__newReader(v)
+	L.Push(luar.New(L.LState, w))
+	return 1
+}
+
+func (f ReaderFactory) __newReader(val lua.LValue) Reader {
+	switch val.Type() {
+	case lua.LTString:
+		return f.FormString(string(val.(lua.LString)))
+	case lua.LTUserData:
+		return f.__toReader(val.(*lua.LUserData).Value)
+	}
+	return nil
+}
+
+func (f ReaderFactory) __toReader(b interface{}) Reader {
 	switch r := b.(type) {
 	case *[]byte:
 		if nil != r {
