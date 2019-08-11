@@ -3,7 +3,6 @@ package driver
 import (
 	"bufio"
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	vmnet "github.com/vlorc/lua-vm/net"
@@ -18,8 +17,6 @@ type HttpDriver struct {
 	vmnet.NetDriver
 	host   string
 	format string
-	https  bool
-	config *tls.Config
 }
 
 func NewHttpDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
@@ -34,8 +31,6 @@ func __newHttpDriver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, err
 	driver := &HttpDriver{
 		NetDriver: parent,
 		host:      uri.Host,
-		https:     "https" == uri.Scheme,
-		config:    &tls.Config{},
 		format:    "CONNECT %s HTTP/1.1\nHost: %s\n\n",
 	}
 	if nil != uri.User {
@@ -55,46 +50,28 @@ func (h *HttpDriver) Dial(ctx context.Context, network, addr string) (net.Conn, 
 	return h.NetDriver.Dial(ctx, network, addr)
 }
 
-func (h *HttpDriver) __dialProxy(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-	rawConn, err := h.NetDriver.Dial(ctx, network, addr)
-	if !h.https {
-		conn = rawConn
+func (h *HttpDriver) __dial(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	conn, err = h.NetDriver.Dial(ctx, "tcp", h.host)
+	if nil != err {
 		return
 	}
-	tlsConn := tls.Client(conn, h.config)
-	errChannel := make(chan error, 1)
-	go func() {
-		errChannel <- tlsConn.Handshake()
-	}()
-	select {
-	case <-ctx.Done():
-		err = ctx.Err()
-	case err = <-errChannel:
-	}
-	if nil != err {
-		rawConn.Close()
-		return nil, err
-	}
-	return tlsConn, nil
-}
-
-func (h *HttpDriver) __dial(ctx context.Context, network, addr string) (net.Conn, error) {
-	conn, err := h.__dialProxy(ctx, network, addr)
 	var body = fmt.Sprintf(h.format, addr, addr)
 	if _, err = conn.Write(*(*[]byte)(unsafe.Pointer(&body))); nil != err {
 		conn.Close()
-		return nil, err
+		conn = nil
+		return
 	}
 	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
 	resp.Body.Close()
 	if err != nil {
 		conn.Close()
-		return nil, err
+		conn = nil
+		return
 	}
 	if resp.StatusCode != 200 {
 		conn.Close()
+		conn = nil
 		err = fmt.Errorf("Connect server using proxy error, StatusCode [%d]", resp.StatusCode)
-		return nil, err
 	}
-	return conn, nil
+	return
 }

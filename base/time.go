@@ -57,6 +57,16 @@ func (TimeFactory) Parse(layout, value string) (time.Time, error) {
 	return time.Parse(layout, value)
 }
 
+func (f TimeFactory) ParseUnix(layout, value string) int64 {
+	tm, _ := f.Parse(layout, value)
+	return tm.Unix()
+}
+
+func (f TimeFactory) ParseUnixNano(layout, value string) int64 {
+	tm, _ := f.Parse(layout, value)
+	return tm.UnixNano()
+}
+
 func (TimeFactory) After(s int, callback func()) *Timer {
 	return (*Timer)(time.AfterFunc(Duration(s), callback))
 }

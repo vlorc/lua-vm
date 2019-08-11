@@ -7,10 +7,14 @@ import (
 )
 
 type FileUtilsFactory struct {
-	FileSystem
+	filesystem FileSystem
 }
 
-func (f FileUtilsFactory) ReadString(file string, args ...int) (string, error) {
+func NewFileUtilsFactory(filesystem FileSystem) *FileUtilsFactory{
+	return &FileUtilsFactory{filesystem: filesystem}
+}
+
+func (f *FileUtilsFactory) ReadString(file string, args ...int) (string, error) {
 	buf, err := f.__readBuffer(file, args...)
 	if nil != err {
 		return "", nil
@@ -18,7 +22,7 @@ func (f FileUtilsFactory) ReadString(file string, args ...int) (string, error) {
 	return *(*string)(unsafe.Pointer(&buf)), nil
 }
 
-func (f FileUtilsFactory) ReadBuffer(file string, args ...int) (base.Buffer, error) {
+func (f *FileUtilsFactory) ReadBuffer(file string, args ...int) (base.Buffer, error) {
 	buf, err := f.__readBuffer(file, args...)
 	if nil != err {
 		return nil, nil
@@ -26,8 +30,8 @@ func (f FileUtilsFactory) ReadBuffer(file string, args ...int) (base.Buffer, err
 	return base.Buffer(buf), nil
 }
 
-func (f FileUtilsFactory) __readBuffer(file string, args ...int) ([]byte, error) {
-	fd, err := f.Open(file)
+func (f *FileUtilsFactory) __readBuffer(file string, args ...int) ([]byte, error) {
+	fd, err := f.filesystem.Open(file)
 	if nil != err {
 		return nil, err
 	}
@@ -45,8 +49,8 @@ func (f FileUtilsFactory) __readBuffer(file string, args ...int) ([]byte, error)
 	return buf.Bytes(), err
 }
 
-func (f FileUtilsFactory) WriteString(file string, str string, args ...int) (int, error) {
-	fd, err := f.Open(file, 0, 0666)
+func (f *FileUtilsFactory) WriteString(file string, str string, args ...int) (int, error) {
+	fd, err := f.filesystem.Open(file, 0, 0666)
 	if nil != err {
 		return 0, err
 	}
@@ -54,8 +58,8 @@ func (f FileUtilsFactory) WriteString(file string, str string, args ...int) (int
 	return fd.Write(*(*[]byte)(unsafe.Pointer(&str)))
 }
 
-func (f FileUtilsFactory) WriteBuffer(file string, buf base.Buffer, args ...int) (int, error) {
-	fd, err := f.Open(file, 0, 0666)
+func (f *FileUtilsFactory) WriteBuffer(file string, buf base.Buffer, args ...int) (int, error) {
+	fd, err := f.filesystem.Open(file, 0, 0666)
 	if nil != err {
 		return 0, err
 	}

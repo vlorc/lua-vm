@@ -16,11 +16,10 @@ import (
 	"github.com/vlorc/lua-vm/pool"
 	"github.com/vlorc/lua-vm/regexp"
 	"github.com/vlorc/lua-vm/store"
-	"time"
 )
 
 func main() {
-	network := driver.DirectDriver{}
+	network,_ := driver.NewProxyDriver("http://127.0.0.1:8888",&driver.DirectDriver{})
 	filesystem := fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})
 	p := pool.NewLuaPool().Preload(
 		pool.Module("net.tcp", tcp.NewTCPFactory(network)),
@@ -31,7 +30,7 @@ func main() {
 		pool.Module("time", base.TimeFactory{}),
 		pool.Module("bit", base.BitFactory{}),
 		pool.Module("fs", filesystem),
-		pool.Module("fs.utils", fs.FileUtilsFactory{FileSystem: filesystem}),
+		pool.Module("fs.utils", fs.NewFileUtilsFactory(filesystem)),
 		pool.Module("io.reader", io.ReaderFactory{}),
 		pool.Module("io.writer", io.WriterFactory{}),
 		pool.Module("net.url", url.URlFactory{}),
@@ -47,16 +46,8 @@ func main() {
 		pool.Module("store", store.NewStoreFactory(nil)),
 	)
 
-	now := time.Now()
-	module, err := p.ModuleFile("demo/module.lua")
+	err := p.DoFile("demo/http.lua")
 	if nil != err {
 		println("error: ", err.Error())
 	}
-
-	var add func(int, int) int
-	module.Method("add", &add)
-	println("add:", add(1, 2))
-
-	last := time.Now()
-	println("time: ", (last.UnixNano()-now.UnixNano())/1000000, last.Unix()-now.Unix())
 }
