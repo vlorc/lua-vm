@@ -1,7 +1,7 @@
 local buffer = require("buffer")
 local tcp = require("net.tcp")
 
-local con,err = tcp:connect("www.baidu.com:80")
+local con,err = tcp:connect("www.google.com:80")
 
 if (nil ~= err) then
     print('connect error: ',err:error())

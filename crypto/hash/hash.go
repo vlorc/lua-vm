@@ -60,6 +60,10 @@ var __table = map[string]func() hash.Hash{
 	"sha1":   sha1.New,
 	"sha256": sha256.New,
 	"sha512": sha512.New,
+	"MD5":    md5.New,
+	"SHA1":   sha1.New,
+	"SHA256": sha256.New,
+	"SHA512": sha512.New,
 }
 
 func (HMACFactory) New(method, secret string) hash.Hash {

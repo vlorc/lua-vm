@@ -22,6 +22,7 @@ func main() {
 	network,_ := driver.NewProxyDriver("http://127.0.0.1:8888",&driver.DirectDriver{})
 	filesystem := fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})
 	p := pool.NewLuaPool().Preload(
+		pool.Library(),
 		pool.Module("net.tcp", tcp.NewTCPFactory(network)),
 		pool.Module("net.udp", udp.NewUDPFactory(network)),
 		pool.Module("net.http", http.NewHTTPFactory(network)),

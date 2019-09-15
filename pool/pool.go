@@ -10,9 +10,13 @@ type LuaPool struct {
 	init []func(*lua.LState) error
 }
 
-func __makeNew(p *LuaPool, opt ...lua.Options) func() interface{} {
+func __makeNew(p *LuaPool, opts ...lua.Options) func() interface{} {
+	if len(opts) <= 0 {
+		opts = []lua.Options{{SkipOpenLibs: true}}
+	}
+
 	return func() interface{} {
-		L := lua.NewState(opt...)
+		L := lua.NewState(opts...)
 		for _, v := range p.init {
 			v(L)
 		}
