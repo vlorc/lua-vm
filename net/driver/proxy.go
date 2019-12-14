@@ -6,16 +6,25 @@ import (
 	"net/url"
 )
 
+var mapping = map[string]Factory{
+	"http":   __newHttpDriver,
+	"https":  __newHttpsDriver,
+	"sock5":  __newSock5Driver,
+	"sock5s": __newSock5SslDriver,
+}
+
+func Register(driver string, factory Factory) {
+	mapping[driver] = factory
+}
+
 func NewProxyDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
 	uri, err := url.Parse(rawurl)
 	if nil != err {
 		return nil, err
 	}
-	switch uri.Scheme {
-	case "http", "https":
-		return __newHttpDriver(uri, parent)
-	case "sock5":
-		return __newSock5Driver(uri, parent)
+	factory, ok := mapping[uri.Scheme]
+	if !ok {
+		return nil, fmt.Errorf("scheme '%s' not support", uri.Scheme)
 	}
-	return nil, fmt.Errorf("scheme '%s' not support", uri.Scheme)
+	return factory(uri, parent, parent)
 }

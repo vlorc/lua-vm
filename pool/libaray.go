@@ -18,7 +18,7 @@ var luaLibs = []luaLib{
 	{lua.DebugLibName, lua.OpenDebug},
 }
 
-func Library() func(ls *lua.LState) error{
+func Library() func(ls *lua.LState) error {
 	return func(ls *lua.LState) error {
 		for _, lib := range luaLibs {
 			ls.Push(ls.NewFunction(lib.libFunc))
@@ -28,4 +28,3 @@ func Library() func(ls *lua.LState) error{
 		return nil
 	}
 }
-

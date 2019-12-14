@@ -3,6 +3,7 @@ package driver
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	vmnet "github.com/vlorc/lua-vm/net"
@@ -13,10 +14,11 @@ import (
 	"unsafe"
 )
 
-type HttpDriver struct {
+type httpDriver struct {
 	vmnet.NetDriver
-	host   string
-	format string
+	factory vmnet.NetDriver
+	host    string
+	format  string
 }
 
 func NewHttpDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
@@ -24,12 +26,37 @@ func NewHttpDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, erro
 	if nil != err {
 		return nil, err
 	}
-	return __newHttpDriver(uri, parent)
+	return __newHttpDriver(uri, parent, parent)
 }
 
-func __newHttpDriver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
-	driver := &HttpDriver{
+func NewHttpsDriverWithConfig(rawurl string, parent vmnet.NetDriver, config *tls.Config) (vmnet.NetDriver, error) {
+	uri, err := url.Parse(rawurl)
+	if nil != err {
+		return nil, err
+	}
+	factory, err := NewTLSDriver(config, parent)
+	if nil != err {
+		return nil, err
+	}
+	return __newHttpDriver(uri, parent, factory)
+}
+
+func NewHttpsDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
+	return NewHttpsDriverWithConfig(rawurl, parent, nil)
+}
+
+func __newHttpsDriver(uri *url.URL, parent, factory vmnet.NetDriver) (vmnet.NetDriver, error) {
+	temp, err := NewTLSDriver(nil, factory)
+	if nil != err {
+		return nil, err
+	}
+	return __newHttpDriver(uri, parent, temp)
+}
+
+func __newHttpDriver(uri *url.URL, parent, factory vmnet.NetDriver) (vmnet.NetDriver, error) {
+	driver := &httpDriver{
 		NetDriver: parent,
+		factory:   factory,
 		host:      uri.Host,
 		format:    "CONNECT %s HTTP/1.1\nHost: %s\n\n",
 	}
@@ -43,15 +70,15 @@ func __newHttpDriver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, err
 	return driver, nil
 }
 
-func (h *HttpDriver) Dial(ctx context.Context, network, addr string) (net.Conn, error) {
+func (h *httpDriver) Dial(ctx context.Context, network, addr string) (net.Conn, error) {
 	if strings.HasSuffix(network, "tcp") {
 		return h.__dial(ctx, network, addr)
 	}
 	return h.NetDriver.Dial(ctx, network, addr)
 }
 
-func (h *HttpDriver) __dial(ctx context.Context, network, addr string) (conn net.Conn, err error) {
-	conn, err = h.NetDriver.Dial(ctx, "tcp", h.host)
+func (h *httpDriver) __dial(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+	conn, err = h.factory.Dial(ctx, network, h.host)
 	if nil != err {
 		return
 	}

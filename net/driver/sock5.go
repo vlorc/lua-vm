@@ -2,6 +2,7 @@ package driver
 
 import (
 	"context"
+	"crypto/tls"
 	vmnet "github.com/vlorc/lua-vm/net"
 	"golang.org/x/net/proxy"
 	"net"
@@ -10,7 +11,7 @@ import (
 	"strings"
 )
 
-type Sock5Driver struct {
+type sock5Driver struct {
 	vmnet.NetDriver
 	dialer Dialer
 }
@@ -21,7 +22,15 @@ type Dialer interface {
 	Dial(network, address string) (net.Conn, error)
 }
 
-func __newSock5Driver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
+func __newSock5SslDriver(uri *url.URL, parent, factory vmnet.NetDriver) (vmnet.NetDriver, error) {
+	temp, err := NewTLSDriver(nil, parent)
+	if nil != err {
+		return nil, err
+	}
+	return __newSock5Driver(uri, parent, temp)
+}
+
+func __newSock5Driver(uri *url.URL, parent, factory vmnet.NetDriver) (vmnet.NetDriver, error) {
 	var auth *proxy.Auth
 	if uri.User != nil {
 		password, _ := uri.User.Password()
@@ -34,12 +43,28 @@ func __newSock5Driver(uri *url.URL, parent vmnet.NetDriver) (vmnet.NetDriver, er
 	if nil != err {
 		return nil, err
 	}
-	reflect.Indirect(reflect.ValueOf(sock5)).FieldByName("ProxyDial").Set(reflect.ValueOf(parent.Dial))
+	reflect.Indirect(reflect.ValueOf(sock5)).FieldByName("ProxyDial").Set(reflect.ValueOf(factory.Dial))
 
-	return &Sock5Driver{
+	return &sock5Driver{
 		NetDriver: parent,
 		dialer:    sock5.(Dialer),
 	}, nil
+}
+
+func NewSock5SslDriverWithConfig(rawurl string, parent vmnet.NetDriver, config *tls.Config) (vmnet.NetDriver, error) {
+	uri, err := url.Parse(rawurl)
+	if nil != err {
+		return nil, err
+	}
+	factory, err := NewTLSDriver(config, parent)
+	if nil != err {
+		return nil, err
+	}
+	return __newSock5Driver(uri, parent, factory)
+}
+
+func NewSock5SslDriver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
+	return NewSock5SslDriverWithConfig(rawurl, parent, nil)
 }
 
 func NewSock5Driver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, error) {
@@ -47,10 +72,10 @@ func NewSock5Driver(rawurl string, parent vmnet.NetDriver) (vmnet.NetDriver, err
 	if nil != err {
 		return nil, err
 	}
-	return __newSock5Driver(uri, parent)
+	return __newSock5Driver(uri, parent, parent)
 }
 
-func (s *Sock5Driver) Dial(ctx context.Context, network, addr string) (net.Conn, error) {
+func (s *sock5Driver) Dial(ctx context.Context, network, addr string) (net.Conn, error) {
 	if strings.HasSuffix(network, "tcp") {
 		return s.dialer.DialContext(ctx, network, addr)
 	}

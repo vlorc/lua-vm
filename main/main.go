@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	network,_ := driver.NewProxyDriver("http://127.0.0.1:8888",&driver.DirectDriver{})
+	network, _ := driver.NewProxyDriver("http://127.0.0.1:8888", &driver.DirectDriver{})
 	filesystem := fs.NewRelativeFileFactory(".", fs.NativeFileFactory{})
 	p := pool.NewLuaPool().Preload(
 		pool.Library(),

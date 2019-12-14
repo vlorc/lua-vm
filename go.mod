@@ -12,3 +12,5 @@ require (
 	golang.org/x/tools v0.0.0-20190914235951-31e00f45c22e // indirect
 	layeh.com/gopher-luar v1.0.7
 )
+
+go 1.13

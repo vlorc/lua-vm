@@ -10,7 +10,7 @@ type FileUtilsFactory struct {
 	filesystem FileSystem
 }
 
-func NewFileUtilsFactory(filesystem FileSystem) *FileUtilsFactory{
+func NewFileUtilsFactory(filesystem FileSystem) *FileUtilsFactory {
 	return &FileUtilsFactory{filesystem: filesystem}
 }
 

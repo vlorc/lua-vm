@@ -33,7 +33,7 @@ type StreamReader struct {
 }
 type ReaderFactory struct{}
 
-func (f ReaderFactory) New(L luar.LState) int {
+func (f ReaderFactory) New(L *luar.LState) int {
 	v := L.Get(-1)
 	w := f.__newReader(v)
 	L.Push(luar.New(L.LState, w))
