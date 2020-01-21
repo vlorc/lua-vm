@@ -30,17 +30,17 @@ func __newBufferN(L *lua.LState) Buffer {
 	v := L.Get(1)
 	switch v.Type() {
 	case lua.LTString:
-		r := make([]string, L.GetTop())
+		b := &bytes.Buffer{}
 		for i := L.GetTop(); i > 0; i-- {
-			r[i-1] = string(L.Get(i).(lua.LString))
+			b.WriteString(string(L.Get(i).(lua.LString)))
 		}
-		return __stringBuffer(r...)
+		return Buffer(b.Bytes())
 	case lua.LTNumber:
-		r := make([]int, L.GetTop())
+		b := make(Buffer, L.GetTop())
 		for i := L.GetTop(); i > 0; i-- {
-			r[i-1] = int(L.Get(i).(lua.LNumber))
+			b[i-1] = byte(L.Get(i).(lua.LNumber))
 		}
-		return __numberBuffer(r...)
+		return b
 	case lua.LTUserData:
 		r := make([]interface{}, L.GetTop())
 		for i := L.GetTop(); i > 0; i-- {

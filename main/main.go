@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/vlorc/lua-vm/base"
 	"github.com/vlorc/lua-vm/crypto/hash"
 	"github.com/vlorc/lua-vm/crypto/rand"
@@ -16,6 +17,7 @@ import (
 	"github.com/vlorc/lua-vm/pool"
 	"github.com/vlorc/lua-vm/regexp"
 	"github.com/vlorc/lua-vm/store"
+	"time"
 )
 
 func main() {
@@ -47,8 +49,11 @@ func main() {
 		pool.Module("store", store.NewStoreFactory(nil)),
 	)
 
-	err := p.DoFile("demo/http.lua")
+	begin := time.Now().UnixNano()
+	err := p.DoFile("demo/buffer.lua")
 	if nil != err {
-		println("error: ", err.Error())
+		fmt.Println("error: ", err.Error())
 	}
+	end := time.Now().UnixNano()
+	fmt.Printf("use: %f", float64(end-begin)/float64(1000000))
 }

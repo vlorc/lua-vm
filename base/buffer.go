@@ -2,7 +2,7 @@ package base
 
 import (
 	"bytes"
-	"layeh.com/gopher-luar"
+	luar "layeh.com/gopher-luar"
 	"unicode/utf8"
 	"unsafe"
 )
@@ -31,6 +31,14 @@ func (BufferFactory) FormString(val ...string) Buffer {
 	return __stringBuffer(val...)
 }
 
+func (b Buffer) Split(L *luar.LState) int {
+	sep := __toBuffer(L.LState)
+	ret := bytes.Split(b, sep)
+
+	L.Push(luar.New(L.LState, *(*[]Buffer)(unsafe.Pointer(&ret))))
+	return 1
+}
+
 func (b Buffer) Slice(args ...int) Buffer {
 	begin, end := 0, len(b)
 	if len(args) > 0 {
@@ -41,6 +49,16 @@ func (b Buffer) Slice(args ...int) Buffer {
 	return b[begin:end]
 }
 
+func (b Buffer) Peek(i int) Buffer {
+	if i > 0 {
+		if i >= len(b) {
+			return Buffer{}
+		}
+		return b[i-1:]
+	}
+	return b
+}
+
 func (b Buffer) IndexAny(str string) int {
 	return bytes.IndexAny(b, str) + 1
 }
@@ -49,8 +67,12 @@ func (b Buffer) IndexByte(val int) int {
 	return bytes.IndexByte(b, byte(val)) + 1
 }
 
-func (b Buffer) Index(buf Buffer) int {
-	return bytes.Index(b, buf) + 1
+func (b Buffer) Index(L *luar.LState) int {
+	sep := __newBufferN(L.LState)
+	ret := bytes.Index(b, sep) + 1
+
+	L.Push(luar.New(L.LState, ret))
+	return 1
 }
 
 func (b Buffer) IndexString(str string) int {
@@ -65,8 +87,12 @@ func (b Buffer) LastByte(val int) int {
 	return bytes.LastIndexByte(b, byte(val)) + 1
 }
 
-func (b Buffer) Last(buf Buffer) int {
-	return bytes.LastIndex(b, buf) + 1
+func (b Buffer) Last(L *luar.LState) int {
+	sep := __newBufferN(L.LState)
+	ret := bytes.LastIndex(b, sep) + 1
+
+	L.Push(luar.New(L.LState, ret))
+	return 1
 }
 
 func (b Buffer) LastString(str string) int {
@@ -85,14 +111,14 @@ func (b Buffer) Copy(src Buffer, args ...int) int {
 }
 
 func (b Buffer) Concat(src ...Buffer) Buffer {
-	i := len(b)
+	l := len(b)
 	for _, v := range src {
-		i += len(v)
+		l += len(v)
 	}
-	dst := make(Buffer, i)
-	i = copy(dst, b)
+	dst := make(Buffer, l)
+	l = copy(dst, b)
 	for _, v := range src {
-		i += copy(dst[i:], v)
+		l += copy(dst[l:], v)
 	}
 	return dst
 }
@@ -115,12 +141,6 @@ func (b Buffer) ToString(args ...string) string {
 	return ""
 }
 
-func (b Buffer) ToRune(args ...int) rune {
-	n := b.Slice(args...)
-	r, _ := utf8.DecodeRune(n)
-	return r
-}
-
 func (b Buffer) Reverse(args ...int) Buffer {
 	n := b.Slice(args...)
 	for i, j := 0, len(n)-1; i < j; i, j = i+1, j-1 {
@@ -129,18 +149,19 @@ func (b Buffer) Reverse(args ...int) Buffer {
 	return n
 }
 
-func (b Buffer) ToNumber(args ...int) (r uint64) {
+func (b Buffer) ToChar(args ...int) int {
 	n := b.Slice(args...)
-	if 3 != len(args) {
-		for i := len(n) - 1; i >= 0; i-- {
-			r = (r << 8) + uint64(n[i])
-		}
-	} else {
-		for _, v := range n {
-			r = (r << 8) + uint64(v)
-		}
+	r, _ := utf8.DecodeRune(n)
+	return int(r)
+}
+
+func (b Buffer) ToNumber(args ...int) uint64 {
+	n := b.Slice(args...)
+	i := 0
+	if len(args) > 2 && args[2] >= 0 && args[2] < len(__number) {
+		i = args[2]
 	}
-	return r
+	return __number[i](n)
 }
 
 func (b Buffer) ToLine(args ...int) string {
