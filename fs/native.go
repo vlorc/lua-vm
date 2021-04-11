@@ -11,7 +11,7 @@ type NativeFileFactory struct{}
 
 func (NativeFileFactory) Open(file string, args ...int) (FileDriver, error) {
 	flag := os.O_RDWR
-	mode := 0666
+	mode := 0644
 	if len(args) > 0 {
 		if 0 == args[0] {
 			flag = os.O_RDWR | os.O_CREATE | os.O_TRUNC

@@ -39,3 +39,9 @@ func (c *TCPConn) SetWriteTimeout(timeout int) {
 func (c *TCPConn) Close() error {
 	return c.conn.Close()
 }
+func (c *TCPConn) LocalAddr() string {
+	return c.conn.LocalAddr().String()
+}
+func (c *TCPConn) RemoteAddr() string {
+	return c.conn.RemoteAddr().String()
+}

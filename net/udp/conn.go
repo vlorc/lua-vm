@@ -62,3 +62,9 @@ func (c *UDPConn) SetReadTimeout(timeout int) {
 func (c *UDPConn) SetWriteTimeout(timeout int) {
 	c.writeTimeout = base.Duration(timeout)
 }
+func (c *UDPConn) LocalAddr() string {
+	return c.conn.LocalAddr().String()
+}
+func (c *UDPConn) RemoteAddr() string {
+	return c.remote.String()
+}

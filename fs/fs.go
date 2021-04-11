@@ -1,9 +1,14 @@
 package fs
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
+)
+
+var (
+	ErrMethodNotSupport = errors.New("Can't support method")
 )
 
 type FileDriver interface {

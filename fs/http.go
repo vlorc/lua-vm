@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"errors"
 	"fmt"
 	vmhttp "github.com/vlorc/lua-vm/net/http"
 	"io"
@@ -58,7 +57,7 @@ func (f *HttpFileFactory) Remove(file string) error {
 }
 
 func (*HttpFileFactory) Rename(src, dst string) error {
-	return errors.New("Can't support rename method")
+	return ErrMethodNotSupport
 }
 
 func (f *HttpFileFactory) Exist(file string) bool {
@@ -73,15 +72,15 @@ func (f *HttpFileFactory) Exist(file string) bool {
 }
 
 func (*HttpFileFactory) Mkdir(string, int) error {
-	return errors.New("Can't support mkdir method")
+	return ErrMethodNotSupport
 }
 
 func (*HttpFileFactory) Walk(root string, callback filepath.WalkFunc) error {
-	return errors.New("Can't support walk method")
+	return ErrMethodNotSupport
 }
 
 func (f *HttpFile) Write(b []byte) (int, error) {
-	return 0, errors.New("Can't support write method")
+	return 0, ErrMethodNotSupport
 }
 
 func (f *HttpFile) Read(b []byte) (int, error) {
@@ -93,7 +92,7 @@ func (f *HttpFile) Close() error {
 }
 
 func (f *HttpFile) Seek(offset int64, whence int) (int64, error) {
-	return 0, errors.New("Can't support seek method")
+	return 0, ErrMethodNotSupport
 }
 
 func (f *HttpFile) Stat() (os.FileInfo, error) {

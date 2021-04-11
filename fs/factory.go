@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,6 +35,13 @@ func NewRelativeFileFactory(root string, parent FileSystem) FileSystem {
 	return &RelativeFileFactory{
 		parent: parent,
 		root:   root,
+	}
+}
+
+func NewVirtualFileFactory(fileSys fs.FS, parent FileSystem) FileSystem {
+	return &VirtualFileFactory{
+		parent:  parent,
+		fileSys: fileSys,
 	}
 }
 

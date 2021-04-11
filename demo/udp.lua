@@ -2,11 +2,13 @@ local buffer = require("buffer")
 local time = require("time")
 local udp = require("net.udp")
 
-local server,err = udp:listen("127.0.0.1",1024)
+local server,err = udp:listen("0.0.0.0:0")
 if (nil ~= err) then
     print('listen error: ',err)
     return
 end
+
+print('listen addr: ',server:localAddr())
 
 local buf = buffer:new(256)
 
